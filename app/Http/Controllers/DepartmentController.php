@@ -1,13 +1,15 @@
 <?php
 
 namespace App\Http\Controllers;
-use Carbon\Carbon;
 use App\Department;
 use App\DepHasPosition;
+use App\EmpDepPosition;
+use Exception;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
 class DepartmentController extends Controller
 {
+
     /**
      * Display a listing of the resource.
      *
@@ -43,10 +45,10 @@ class DepartmentController extends Controller
      */
     public function store(Request $request)
     {
-        // $department = new Department();
-        // $department->department_name = $request->department_name;
-        // $department->save();   
-        // return $department;
+        $department = new Department();
+        $department->department_name = $request->department_name;
+        $department->save();   
+        return $department;
     }
 
     /**
@@ -97,6 +99,33 @@ class DepartmentController extends Controller
         
         $department = Department::whereId($id)->firstOrFail();  
         $department->delete();
-        return  true;
+        return  $department;
     }
+    // public function fdelete($id)
+    // {
+    //     try {
+    //         $emp_dep_pos = EmpDepPosition::where('department_id', $id)->firstOrFail();
+    //         if ($emp_dep_pos) {
+    //             EmpDepPosition::where('department_id',$id)->forcedelete();//or
+    //             //$emp_dep_pos->forcedelete();
+                
+    //         }
+    //         $dep_pos=DepHasPosition::where('department_id',$id)->firstOrFail();
+    //         if($dep_pos){
+    //             DepHasPosition::where('department_id',$id)->forcedelete();
+    //         }
+    //         $dep=Department::where($id)->firstOrFail();
+    //         if($dep){
+    //             Department::where($id)->forcedelete();
+    //         }
+    //         return response()->json([
+    //             "message" => "Deleted"
+    //         ]);
+            
+    //     } catch (Exception $e) {
+    //         return response($e->getMessage());
+    //     }
+
+        
+    // }
 }

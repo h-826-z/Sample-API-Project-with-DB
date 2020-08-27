@@ -4,6 +4,9 @@ namespace App\Http\Controllers;
 
 use App\Department;
 use App\DepHasPosition;
+use App\EmpDepPosition;
+use App\Position;
+use Exception;
 use Illuminate\Http\Request;
 
 class DepHasPositionController extends Controller
@@ -92,12 +95,37 @@ class DepHasPositionController extends Controller
      */
     public function destroy($id)
     {
-        
+        $dep_has_positions=DepHasPosition::whereId($id)->firstOrFail();
+        $dep_has_positions->delete();
+        return $dep_has_positions;
     }
     public function fdelete($id)
     {
-        $dep_has_positions=DepHasPosition::whereId($id)->firstOrFail();
-        $dep_has_positions->delete();
-        return true;
+        
+        try {
+                $emp_dep_pos = EmpDepPosition::where('department_id', $id)->firstOrFail();
+                if ($emp_dep_pos) {
+                    EmpDepPosition::where('department_id',$id)->forcedelete();//or
+                    //$emp_dep_pos->forcedelete();
+                    
+                }
+    
+                $emp_has_pos = DepHasPosition::where('department_id',$id)->firstOrFail();
+                if ($emp_has_pos) {
+                    $emp_has_pos->forcedelete();
+                }
+                $dep = Department::whereId($id)->firstOrFail();
+                if ($dep) {
+                    $dep->forcedelete();
+                }
+                return response()->json([
+                    "message" => "Deleted"
+                ]);
+        } catch (Exception $e) {
+            return response($e->getMessage());
+        }
+
+        
     }
+    
 }

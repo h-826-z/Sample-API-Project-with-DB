@@ -1,5 +1,6 @@
 <?php
 
+use App\Http\Controllers\EmployeeController;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Route;
 
@@ -22,4 +23,10 @@ Route::apiResource('/employees','EmployeeController');
 Route::apiResource('/departments','DepartmentController');
 Route::apiResource('/positions','PositionController');
 Route::apiResource('/department-positions','DepHasPositionController');
-Route::apiResource('/department-positions/{id}/force-delete','DepHasPositionController@fdelete');
+
+
+
+Route::delete('/deparment_positions/{id}/force-delete','DepHasPositionController@fdelete');
+
+Route::delete('/employees/{id}/force-delete','EmployeeController@fdelete');
+Route::get('/employee/search/','EmployeeController@search');

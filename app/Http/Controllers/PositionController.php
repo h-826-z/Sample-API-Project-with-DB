@@ -5,11 +5,13 @@ namespace App\Http\Controllers;
 use Locale;
 
 use App\Position;
+use Exception;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
-use Carbon\Carbon;
+
 class PositionController extends Controller
 {
+    
     /**
      * Display a listing of the resource.
      *
@@ -17,7 +19,7 @@ class PositionController extends Controller
      */
     public function index()
     {
-        $position = Position::all();
+        $position = Position::withTrashed()->get();
         return $position;
     }
 
@@ -53,7 +55,7 @@ class PositionController extends Controller
      */
     public function show($id)
     {
-        $position = Position::find($id);
+        $position=Position::whereId($id)->withTrashed()->get();
         return $position;
     }
 
@@ -77,12 +79,18 @@ class PositionController extends Controller
      */
     public function update(Request $request, $id)
     {
-        //$position=Position::find($id);
-        $position = Position::whereId($id)->firstOrFail();
-        $position->position_name = $request->position_name;
-        $position->position_rank = $request->position_rank;
-        $position->update();
-        return $position;
+        try{
+            //$position=Position::find($id);
+            $position =Position::find($id);
+            $position->position_name = $request->position_name;
+            $position->position_rank = $request->position_rank;
+            $position->update();
+            return response($position);
+        }catch(Exception $e){
+            return response($e->getMessage());
+        }
+        
+        
     }
 
     /**
@@ -93,12 +101,11 @@ class PositionController extends Controller
      */
     public function destroy($id)
     {
-        $position=Position::find($id);
-        //$position = Position::whereId($id)->firstOrFail();
+        //$position=Position::find($id);
+        $position = Position::whereId($id)->firstOrFail();
 
         
-        $position->deleted_at = Carbon::now();
-        $position->update();
-        return  true;
+        $position->delete();
+        return  $position;
     }
 }
