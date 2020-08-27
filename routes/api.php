@@ -19,14 +19,13 @@ Route::middleware('auth:api')->get('/user', function (Request $request) {
     return $request->user();
 });
 
-Route::apiResource('/employees','EmployeeController');
-Route::apiResource('/departments','DepartmentController');
-Route::apiResource('/positions','PositionController');
-Route::apiResource('/department-positions','DepHasPositionController');
+Route::apiResource('/employees', 'EmployeeController');
+Route::apiResource('/departments', 'DepartmentController');
+Route::apiResource('/positions', 'PositionController');
+Route::apiResource('/department-positions', 'DepHasPositionController');
 
 
-
-Route::delete('/deparment_positions/{id}/force-delete','DepHasPositionController@fdelete');
-
-Route::delete('/employees/{id}/force-delete','EmployeeController@fdelete');
-Route::get('/employee/search/','EmployeeController@search');
+//custom routes
+Route::delete('/deparment_positions/{id}/force-delete', 'DepHasPositionController@fdelete');
+Route::delete('/employees/{id}/force-delete', 'EmployeeController@fdelete');
+Route::get('/employee/search/', 'EmployeeController@search');

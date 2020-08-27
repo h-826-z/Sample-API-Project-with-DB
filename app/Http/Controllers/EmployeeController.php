@@ -18,13 +18,13 @@ class EmployeeController extends Controller
      */
     public function index()
     {
-        $limit=(int)env('limit');
-        $employees = Employee::with('departments','positions')->withTrashed()->paginate($limit);
+        $limit = (int)env('limit');
+        $employees = Employee::with('departments', 'positions')->withTrashed()->paginate($limit);
         // $employees = Employee::with(["department" => function($n){
         //     $n->where('department.id','id');
         // }])->get();
-        
-        return response($employees,200);
+
+        return response($employees, 200);
     }
 
     /**
@@ -34,7 +34,6 @@ class EmployeeController extends Controller
      */
     public function create()
     {
-        
     }
 
     /**
@@ -83,12 +82,12 @@ class EmployeeController extends Controller
      */
     public function show($id)
     {
-        $limit=(int)env('limit');
+        $limit = (int)env('limit');
         $employees = Employee::whereId($id)
-                    ->with('departments','positions')
-                    ->withTrashed()->paginate($limit);
-        
-        
+            ->with('departments', 'positions')
+            ->withTrashed()->paginate($limit);
+
+
         return $employees;
     }
 
@@ -148,7 +147,7 @@ class EmployeeController extends Controller
      */
     public function destroy($id)
     {
-        $employee=Employee::whereId($id)->firstOrFail();
+        $employee = Employee::whereId($id)->firstOrFail();
         $employee->delete();
     }
     public function fdelete($id)
@@ -158,7 +157,6 @@ class EmployeeController extends Controller
             if ($emp_dep_pos) {
                 //EmpDepPosition::where('employee_id',$id)->forcedelete();//or
                 $emp_dep_pos->forcedelete();
-                
             }
 
             $emp = Employee::whereId($id)->firstOrFail();
@@ -174,29 +172,39 @@ class EmployeeController extends Controller
     }
     public function search(Request $request)
     {
-        try {
-            if($request == null){
-                return response()->json([
-                    "message" => "Searched without input data"
-                ]);
-            }else{
-                $limit=(int)env('limit');
-            $search_id=$request->employee_id;
-            $search_name = $request->employee_name;
+        if ($request->has('employee_id') && $request->has('employee_name')) {
+            try {
 
-            //$employee = Employee::search('nini')->get();
-            //$employee = Employee::where('employee_name',$search)->get();
-            $employee = Employee::with('departments','positions')
-                                ->where('employee_name',$search_name)
-                                ->orwhere('id',$search_id)
-                                ->withTrashed()
-                                ->paginate($limit);
-            return response($employee);
+                $limit = (int)env('limit');
+                $search_id = $request->employee_id;
+                $search_name = $request->employee_name;
+
+                //$employee = Employee::search('nini')->get();
+                //$employee = Employee::where('employee_name',$search)->get();
+                $employee = Employee::with('departments', 'positions')
+                    ->where('id', $search_id)
+                    ->orwhere('employee_name', $search_name)
+                    ->withTrashed()
+                    ->paginate($limit);
+                return response($employee);
+                // if ($employee['id'] == $search_id && $employee['employee_name'] == $search_name) {
+                    
+                // } elseif ($employee['id'] != $search_id && $employee['employee_name'] == $search_name) {
+                //     return response()->json([
+                //         "message" => "That Id does not have in DB"
+                //     ]);
+                // } else {
+                //     return response()->json([
+                //         "message" => "That Name does not have in DB"
+                //     ]);
+                // }
+            } catch (Exception $e) {
+                return response($e->getMessage());
             }
-            
-        } catch (Exception $e) {
-            return response($e->getMessage());
+        } else {
+            return response()->json([
+                "message" => "Searched without input data"
+            ]);
         }
     }
-
 }

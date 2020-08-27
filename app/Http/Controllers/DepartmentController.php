@@ -1,12 +1,14 @@
 <?php
 
 namespace App\Http\Controllers;
+
 use App\Department;
 use App\DepHasPosition;
 use App\EmpDepPosition;
 use Exception;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
+
 class DepartmentController extends Controller
 {
 
@@ -17,7 +19,7 @@ class DepartmentController extends Controller
      */
     public function index()
     {
-        $department=Department::all();
+        $department = Department::all();
         return $department;
     }
 
@@ -28,12 +30,12 @@ class DepartmentController extends Controller
      */
     public function create(Request $request)
     {
-        $data= $request->validate([
+        $data = $request->validate([
             'department_name' => 'bail|required|max:5'
         ]);
         $department = new Department();
         $department->department_name = $request->department_name;
-        $department->save();   
+        $department->save();
         return $department;
     }
 
@@ -47,7 +49,7 @@ class DepartmentController extends Controller
     {
         $department = new Department();
         $department->department_name = $request->department_name;
-        $department->save();   
+        $department->save();
         return $department;
     }
 
@@ -83,7 +85,7 @@ class DepartmentController extends Controller
     public function update(Request $request, $id)
     {
         $department = Department::find($id);
-        $department->department_name=$request->department_name;
+        $department->department_name = $request->department_name;
         $department->update();
         return  $department;
     }
@@ -96,8 +98,8 @@ class DepartmentController extends Controller
      */
     public function destroy($id)
     {
-        
-        $department = Department::whereId($id)->firstOrFail();  
+
+        $department = Department::whereId($id)->firstOrFail();
         $department->delete();
         return  $department;
     }
@@ -108,7 +110,7 @@ class DepartmentController extends Controller
     //         if ($emp_dep_pos) {
     //             EmpDepPosition::where('department_id',$id)->forcedelete();//or
     //             //$emp_dep_pos->forcedelete();
-                
+
     //         }
     //         $dep_pos=DepHasPosition::where('department_id',$id)->firstOrFail();
     //         if($dep_pos){
@@ -121,11 +123,11 @@ class DepartmentController extends Controller
     //         return response()->json([
     //             "message" => "Deleted"
     //         ]);
-            
+
     //     } catch (Exception $e) {
     //         return response($e->getMessage());
     //     }
 
-        
+
     // }
 }

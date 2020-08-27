@@ -11,7 +11,7 @@ use Illuminate\Support\Facades\DB;
 
 class PositionController extends Controller
 {
-    
+
     /**
      * Display a listing of the resource.
      *
@@ -55,7 +55,7 @@ class PositionController extends Controller
      */
     public function show($id)
     {
-        $position=Position::whereId($id)->withTrashed()->get();
+        $position = Position::whereId($id)->withTrashed()->get();
         return $position;
     }
 
@@ -79,18 +79,16 @@ class PositionController extends Controller
      */
     public function update(Request $request, $id)
     {
-        try{
+        try {
             //$position=Position::find($id);
-            $position =Position::find($id);
+            $position = Position::find($id);
             $position->position_name = $request->position_name;
             $position->position_rank = $request->position_rank;
             $position->update();
             return response($position);
-        }catch(Exception $e){
+        } catch (Exception $e) {
             return response($e->getMessage());
         }
-        
-        
     }
 
     /**
@@ -104,7 +102,7 @@ class PositionController extends Controller
         //$position=Position::find($id);
         $position = Position::whereId($id)->firstOrFail();
 
-        
+
         $position->delete();
         return  $position;
     }
