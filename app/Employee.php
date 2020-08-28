@@ -17,4 +17,5 @@ class Employee extends Model
         
         return $this->belongsToMany('App\Position','emp_dep_positions','employee_id','position_id');
     }
+    
 }

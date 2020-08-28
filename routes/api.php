@@ -27,5 +27,6 @@ Route::apiResource('/department-positions', 'DepHasPositionController');
 
 //custom routes
 Route::delete('/deparment_positions/{id}/force-delete', 'DepHasPositionController@fdelete');
-Route::delete('/employees/{id}/force-delete', 'EmployeeController@fdelete');
+Route::delete('/employee/{id}/force-delete', 'EmployeeController@fdelete');
 Route::get('/employee/search/', 'EmployeeController@search');
+Route::get('/employeeExport/{id}','EmployeeController@export');

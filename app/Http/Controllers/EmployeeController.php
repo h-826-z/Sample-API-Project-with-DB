@@ -5,10 +5,15 @@ namespace App\Http\Controllers;
 use App\DepHasPosition;
 use App\EmpDepPosition;
 use App\Employee;
+use App\Exports\EmployeeExport;
 use Exception;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
-
+use App\Exports\EmployeesExport;
+use Facade\FlareClient\Http\Response;
+use Illuminate\Support\Facades\Config;
+use Maatwebsite\Excel\Facades\Excel;
+use Illuminate\Support\Facades\Mail;
 class EmployeeController extends Controller
 {
     /**
@@ -18,8 +23,11 @@ class EmployeeController extends Controller
      */
     public function index()
     {
-        $limit = (int)env('limit');
-        $employees = Employee::with('departments', 'positions')->withTrashed()->paginate($limit);
+        
+        //take constant variable from config/constant.php
+        $per_page=Config::get('constants.per_page');
+        
+        $employees = Employee::with('departments', 'positions')->paginate($per_page);
         // $employees = Employee::with(["department" => function($n){
         //     $n->where('department.id','id');
         // }])->get();
@@ -70,8 +78,13 @@ class EmployeeController extends Controller
         $emp_dep_pos->position_id = $pos_id;
         $emp_dep_pos->save();
 
+        Mail::raw('Your registration Successfully',function($message){
+            $message->subject('Registration Info')->from('bamawlhr@gmail.com')->to('heinzaw1999.mdy@gmail.com');
+        });
 
-        return $employees;
+        return response()->json([
+            "Message" => "Registration Successfully"
+        ]);
     }
 
     /**
@@ -82,10 +95,10 @@ class EmployeeController extends Controller
      */
     public function show($id)
     {
-        $limit = (int)env('limit');
+        
         $employees = Employee::whereId($id)
             ->with('departments', 'positions')
-            ->withTrashed()->paginate($limit);
+            ->paginate($per_page);
 
 
         return $employees;
@@ -172,23 +185,23 @@ class EmployeeController extends Controller
     }
     public function search(Request $request)
     {
-        if ($request->has('employee_id') && $request->has('employee_name')) {
+        if ($request->has('employee_id') || $request->has('employee_name')) {
             try {
 
-                $limit = (int)env('limit');
+                
                 $search_id = $request->employee_id;
                 $search_name = $request->employee_name;
 
                 //$employee = Employee::search('nini')->get();
                 //$employee = Employee::where('employee_name',$search)->get();
                 $employee = Employee::with('departments', 'positions')
+
                     ->where('id', $search_id)
                     ->orwhere('employee_name', $search_name)
-                    ->withTrashed()
-                    ->paginate($limit);
+                    ->paginate($per_page);
                 return response($employee);
                 // if ($employee['id'] == $search_id && $employee['employee_name'] == $search_name) {
-                    
+
                 // } elseif ($employee['id'] != $search_id && $employee['employee_name'] == $search_name) {
                 //     return response()->json([
                 //         "message" => "That Id does not have in DB"
@@ -205,6 +218,16 @@ class EmployeeController extends Controller
             return response()->json([
                 "message" => "Searched without input data"
             ]);
+        }
+    }
+
+    public function export($id)
+    {
+        if ($id == 'all') {
+            return Excel::download(new EmployeesExport, 'EmployeesList.xlsx');
+        } elseif (Employee::whereId($id)->firstOrFail()) {
+
+            return Excel::download(new EmployeeExport($id), 'EmployeeList.xlsx');
         }
     }
 }
