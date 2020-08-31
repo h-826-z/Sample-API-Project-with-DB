@@ -8,7 +8,10 @@ use App\EmpDepPosition;
 use App\Position;
 use Exception;
 use Illuminate\Http\Request;
-
+use Illuminate\Support\Facades\Validator;
+/** *Here is DepHasPositionController to show,store,insert,update,delete,search data
+     * * @author HZ
+     * @create date 28/08/2020* */
 class DepHasPositionController extends Controller
 {
     /**
@@ -36,15 +39,26 @@ class DepHasPositionController extends Controller
      * Store a newly created resource in storage.
      *
      * @param  \Illuminate\Http\Request  $request
-     * @return \Illuminate\Http\Response
+     * @return DepHasPositions Model
      */
     public function store(Request $request)
     {
+        //validation check
+        $validator = Validator::make($request->all(),
+            [
+                'department_id' => 'required',
+                'position_id' => 'required'
+            ]
+        );
+        if ($validator->fails()) { //if validation =false
+            return response()->json($validator->errors(), 422);
+        } else {
         $dep_has_positions = new DepHasPosition();
         $dep_has_positions->department_id = $request->department_id;
         $dep_has_positions->position_id = $request->position_id;
         $dep_has_positions->save();
-        return true;
+        return $dep_has_positions;
+        }
     }
 
     /**
@@ -99,25 +113,30 @@ class DepHasPositionController extends Controller
         $dep_has_positions->delete();
         return $dep_has_positions;
     }
+
+    /** *Here is Force Delete  
+     * * @author HZ
+     * @create date 31/08/2020
+     * @param id @return Deleted Message * */
     public function fdelete($id)
     {
 
         try {
             $emp_dep_pos = EmpDepPosition::where('department_id', $id)->firstOrFail();
-            if ($emp_dep_pos) {
-                EmpDepPosition::where('department_id', $id)->forcedelete(); //or
-                //$emp_dep_pos->forcedelete();
+            // if ($emp_dep_pos) {
+            //     EmpDepPosition::where('department_id', $id)->forcedelete(); //or
+            //     //$emp_dep_pos->forcedelete();
 
-            }
+            // }
 
-            $emp_has_pos = DepHasPosition::where('department_id', $id)->firstOrFail();
-            if ($emp_has_pos) {
-                $emp_has_pos->forcedelete();
-            }
-            $dep = Department::whereId($id)->firstOrFail();
-            if ($dep) {
-                $dep->forcedelete();
-            }
+            // $emp_has_pos = DepHasPosition::where('department_id', $id)->firstOrFail();
+            // if ($emp_has_pos) {
+            //     //$emp_has_pos->forcedelete();
+            // }
+            // $dep = Department::whereId($id)->firstOrFail();
+            // if ($dep) {
+            //     $dep->forcedelete();
+            // }
             return response()->json([
                 "message" => "Deleted"
             ]);

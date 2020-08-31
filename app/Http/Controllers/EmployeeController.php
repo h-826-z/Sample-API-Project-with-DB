@@ -2,6 +2,7 @@
 
 namespace App\Http\Controllers;
 
+use Illuminate\Support\Facades\Validator;
 use App\DepHasPosition;
 use App\EmpDepPosition;
 use App\Employee;
@@ -14,8 +15,13 @@ use Facade\FlareClient\Http\Response;
 use Illuminate\Support\Facades\Config;
 use Maatwebsite\Excel\Facades\Excel;
 use Illuminate\Support\Facades\Mail;
+
+/** *Here is Employee Controller to show,store,insert,update,delete,search employee data
+ * * @author HZ
+ * @create date 28/08/2020 * */
 class EmployeeController extends Controller
 {
+
     /**
      * Display a listing of the resource.
      *
@@ -23,15 +29,11 @@ class EmployeeController extends Controller
      */
     public function index()
     {
-        
-        //take constant variable from config/constant.php
-        $per_page=Config::get('constants.per_page');
-        
-        $employees = Employee::with('departments', 'positions')->paginate($per_page);
-        // $employees = Employee::with(["department" => function($n){
-        //     $n->where('department.id','id');
-        // }])->get();
 
+        //take constant variable from config/constant.php
+        $per_page = Config::get('constants.per_page');
+
+        $employees = Employee::with('departments', 'positions')->paginate($per_page);
         return response($employees, 200);
     }
 
@@ -40,7 +42,7 @@ class EmployeeController extends Controller
      *
      * @return \Illuminate\Http\Response
      */
-    public function create()
+    public function create(Request $request)
     {
     }
 
@@ -52,39 +54,65 @@ class EmployeeController extends Controller
      */
     public function store(Request $request)
     {
-        $employees = new Employee();
-        $employees->employee_name = $request->employee_name;
-        $employees->email = $request->email;
-        $employees->dob = $request->dob;
-        $employees->password = $request->password;
-        $employees->gender = $request->gender;
-        $employees->save();
-
-        //save dep_emp_pos id
-        $lastemp_id = Employee::max('id');
-        if ($request->position_id) {
-            $pos_id = $request->position_id;
+        $validator = Validator::make(
+            $request->all(),
+            [
+                'employee_name' => 'required|alpha|min:5|max:20',
+                'email' => 'email|unique:employees',
+                'dob' => 'date_format:Y-m-d|before:today',
+                'password' => 'required|min:6',
+                'department_id' => 'required',
+                'position_id' => 'required'
+            ]
+        );
+        if ($validator->fails()) {
+            return response()->json($validator->errors(), 400);
         } else {
-            $pos_id = 1;
-        }
-        if ($request->department_id) {
-            $dep_id = $request->department_id;
-        } else {
-            $dep_id = 1;
-        }
-        $emp_dep_pos = new EmpDepPosition();
-        $emp_dep_pos->employee_id = $lastemp_id;
-        $emp_dep_pos->department_id = $dep_id;
-        $emp_dep_pos->position_id = $pos_id;
-        $emp_dep_pos->save();
+            //save data to employee table
 
-        Mail::raw('Your registration Successfully',function($message){
-            $message->subject('Registration Info')->from('bamawlhr@gmail.com')->to('heinzaw1999.mdy@gmail.com');
-        });
+            try {
+                $employees = new Employee();
+                $employees->employee_name = $request->employee_name;
+                $employees->emil = $request->email;
+                $employees->dob = $request->dob;
+                $employees->password = $request->password;
+                $employees->gender = $request->gender;
+                $employees->save();
 
-        return response()->json([
-            "Message" => "Registration Successfully"
-        ]);
+                //save dep_emp_pos id
+                $lastemp_id = Employee::max('id');
+                //take constant variable from config/constant.php
+                $constant_id = Config::get('constants.constant_id');
+                if ($request->position_id) {
+                    $pos_id = $request->position_id;
+                } else {
+                    $pos_id = $constant_id;
+                }
+                if ($request->department_id) {
+                    $dep_id = $request->department_id;
+                } else {
+                    $dep_id = $constant_id;
+                }
+                $emp_dep_pos = new EmpDepPosition();
+                $emp_dep_pos->employee_id = $lastemp_id;
+                $emp_dep_pos->department_id = $dep_id;
+                $emp_dep_pos->position_id = $pos_id;
+                $emp_dep_pos->save();
+
+                if (validator()) {
+                    Mail::raw('Your registration Successfully', function ($message) {
+                        $message->subject('Registration Info')->from('bamawlhr@gmail.com')->to('heinzaw1999.mdy@gmail.com');
+                    });
+                }
+                return response()->json([
+                    "Message" => "Registration Successfully"
+                ], 200);
+            } catch (\Throwable $th) {
+                return response()->json([
+                    "Error" => "500 Internal Server Error"
+                ], 500);
+            }
+        }
     }
 
     /**
@@ -95,7 +123,7 @@ class EmployeeController extends Controller
      */
     public function show($id)
     {
-        
+        $per_page = Config::get('constants.per_page');
         $employees = Employee::whereId($id)
             ->with('departments', 'positions')
             ->paginate($per_page);
@@ -185,42 +213,42 @@ class EmployeeController extends Controller
     }
     public function search(Request $request)
     {
-        if ($request->has('employee_id') || $request->has('employee_name')) {
-            try {
 
-                
-                $search_id = $request->employee_id;
-                $search_name = $request->employee_name;
+       /*Retrive data associated with id and name
+        $empid = $request['id'];
+        $empname = $request['employee_name'];
 
-                //$employee = Employee::search('nini')->get();
-                //$employee = Employee::where('employee_name',$search)->get();
-                $employee = Employee::with('departments', 'positions')
 
-                    ->where('id', $search_id)
-                    ->orwhere('employee_name', $search_name)
-                    ->paginate($per_page);
-                return response($employee);
-                // if ($employee['id'] == $search_id && $employee['employee_name'] == $search_name) {
+        $search=Employee::where('id', $empid)->orWhere('employee_name', $empname)->get();
+        return $search;
+        */
 
-                // } elseif ($employee['id'] != $search_id && $employee['employee_name'] == $search_name) {
-                //     return response()->json([
-                //         "message" => "That Id does not have in DB"
-                //     ]);
-                // } else {
-                //     return response()->json([
-                //         "message" => "That Name does not have in DB"
-                //     ]);
-                // }
-            } catch (Exception $e) {
-                return response($e->getMessage());
-            }
-        } else {
-            return response()->json([
-                "message" => "Searched without input data"
-            ]);
+        $search_data=[];
+        
+        if($request->id)
+        {
+            $search_id = ['id', $request->id];
+            array_push($search_data, $search_id);
         }
-    }
 
+         if($request->employee_name)
+        {
+            $search_name=['employee_name','like',$request->employee_name.'%'];
+            array_push($search_data, $search_name);
+        }
+        
+        $perPage = Config::get('constants.per_page');
+        //return response()->json(["ofgk"]); die();
+        $employees=Employee::with(['departments','positions'])->withTrashed()->where($search_data)->paginate($perPage);
+        return response()->json($employees,200);
+   
+    }
+    
+    /**
+     * Export Employee Data as excel
+     * @param  int  $id
+     * @return Employee excel download file
+     */
     public function export($id)
     {
         if ($id == 'all') {

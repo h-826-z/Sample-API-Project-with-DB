@@ -8,7 +8,11 @@ use App\EmpDepPosition;
 use Exception;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
-
+use Illuminate\Support\Facades\Validator;
+    /** *Here is Department Controller to show,store,insert,update,delete,search data
+     * * @author HZ
+     * @create date 27/08/2020
+     * * */
 class DepartmentController extends Controller
 {
 
@@ -30,13 +34,6 @@ class DepartmentController extends Controller
      */
     public function create(Request $request)
     {
-        $data = $request->validate([
-            'department_name' => 'bail|required|max:5'
-        ]);
-        $department = new Department();
-        $department->department_name = $request->department_name;
-        $department->save();
-        return $department;
     }
 
     /**
@@ -47,10 +44,20 @@ class DepartmentController extends Controller
      */
     public function store(Request $request)
     {
-        $department = new Department();
-        $department->department_name = $request->department_name;
-        $department->save();
-        return $department;
+        $validator = Validator::make(
+            $request->all(),
+            [
+                'department_name' => 'required|alpha|min:5|max:20',
+            ]
+        );
+        if ($validator->fails()) {
+            return response()->json($validator->errors(), 400);
+        } else {
+            $department = new Department();
+            $department->department_name = $request->department_name;
+            $department->save();
+            return $department;
+        }
     }
 
     /**
@@ -103,31 +110,36 @@ class DepartmentController extends Controller
         $department->delete();
         return  $department;
     }
-    // public function fdelete($id)
-    // {
-    //     try {
-    //         $emp_dep_pos = EmpDepPosition::where('department_id', $id)->firstOrFail();
-    //         if ($emp_dep_pos) {
-    //             EmpDepPosition::where('department_id',$id)->forcedelete();//or
-    //             //$emp_dep_pos->forcedelete();
 
-    //         }
-    //         $dep_pos=DepHasPosition::where('department_id',$id)->firstOrFail();
-    //         if($dep_pos){
-    //             DepHasPosition::where('department_id',$id)->forcedelete();
-    //         }
-    //         $dep=Department::where($id)->firstOrFail();
-    //         if($dep){
-    //             Department::where($id)->forcedelete();
-    //         }
-    //         return response()->json([
-    //             "message" => "Deleted"
-    //         ]);
+    /** *Here is force delete the department 
+     * * @author HZ
+     * @create date 31/08/2020
+     * @param id @return Message * */
+    /*public function fdelete($id)
+    {
+        try {
+            $emp_dep_pos = EmpDepPosition::where('department_id', $id)->firstOrFail();
+            if ($emp_dep_pos) {
+                EmpDepPosition::where('department_id',$id)->forcedelete();//or
+                //$emp_dep_pos->forcedelete();
 
-    //     } catch (Exception $e) {
-    //         return response($e->getMessage());
-    //     }
+            }
+            $dep_pos=DepHasPosition::where('department_id',$id)->firstOrFail();
+            if($dep_pos){
+                DepHasPosition::where('department_id',$id)->forcedelete();
+            }
+            $dep=Department::where($id)->firstOrFail();
+            if($dep){
+                Department::where($id)->forcedelete();
+            }
+            return response()->json([
+                "message" => "Deleted"
+            ]);
+
+        } catch (Exception $e) {
+            return response($e->getMessage());
+        }
 
 
-    // }
+    }*/
 }

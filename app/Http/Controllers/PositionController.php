@@ -8,7 +8,10 @@ use App\Position;
 use Exception;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
-
+use Illuminate\Support\Facades\Validator;
+    /** *Here is Position Controller to show,store,insert,update,delete,search data
+     * * @author HZ
+     * @create date 28/08/2020 * */
 class PositionController extends Controller
 {
 
@@ -19,6 +22,7 @@ class PositionController extends Controller
      */
     public function index()
     {
+        //need to be able to get the trashed positions too, but only for this instance and in this function
         $position = Position::withTrashed()->get();
         return $position;
     }
@@ -40,11 +44,22 @@ class PositionController extends Controller
      */
     public function store(Request $request)
     {
-        $position = new Position();
-        $position->position_name = $request->position_name;
-        $position->position_rank = $request->position_rank;
-        $position->save();
-        return $position;
+        $validator = Validator::make(
+            $request->all(),
+            [
+                'position_name' => 'required|alpha|min:5|max:20',
+                'position_rank' => 'required',
+            ]
+        );
+        if ($validator->fails()) {//if validation is false
+            return response()->json($validator->errors(), 422);//422 is Unprocessable Entity  error code
+        } else {
+            $position = new Position();
+            $position->position_name = $request->position_name;
+            $position->position_rank = $request->position_rank;
+            $position->save();
+            return $position;
+        }
     }
 
     /**
@@ -75,7 +90,7 @@ class PositionController extends Controller
      *
      * @param  \Illuminate\Http\Request  $request
      * @param  int  $id
-     * @return \Illuminate\Http\Response
+     * @return Position object
      */
     public function update(Request $request, $id)
     {
