@@ -15,6 +15,7 @@ use Facade\FlareClient\Http\Response;
 use Illuminate\Support\Facades\Config;
 use Maatwebsite\Excel\Facades\Excel;
 use Illuminate\Support\Facades\Mail;
+use PHPUnit\Framework\Constraint\IsEqual;
 
 /** *Here is Employee Controller to show,store,insert,update,delete,search employee data
  * * @author HZ
@@ -24,14 +25,15 @@ class EmployeeController extends Controller
 
     /**
      * Display a listing of the resource.
-     *
+     *@author HZ
      * @return \Illuminate\Http\Response
+     * 
      */
     public function index()
     {
 
         //take constant variable from config/constant.php
-        $per_page = Config::get('constants.per_page');
+        $per_page = Config::get('constant.per_page');
 
         $employees = Employee::with('departments', 'positions')->paginate($per_page);
         return response($employees, 200);
@@ -57,12 +59,12 @@ class EmployeeController extends Controller
         $validator = Validator::make(
             $request->all(),
             [
-                'employee_name' => 'required|alpha|min:5|max:20',
+                'employee_name' => 'required|min:5|max:20',
                 'email' => 'email|unique:employees',
                 'dob' => 'date_format:Y-m-d|before:today',
-                'password' => 'required|min:6',
-                'department_id' => 'required',
-                'position_id' => 'required'
+                'password' => 'required|min:6'
+                //'department_id' => 'required',
+                //'position_id' => 'required'
             ]
         );
         if ($validator->fails()) {
@@ -73,7 +75,7 @@ class EmployeeController extends Controller
             try {
                 $employees = new Employee();
                 $employees->employee_name = $request->employee_name;
-                $employees->emil = $request->email;
+                $employees->email = $request->email;
                 $employees->dob = $request->dob;
                 $employees->password = $request->password;
                 $employees->gender = $request->gender;
@@ -82,16 +84,18 @@ class EmployeeController extends Controller
                 //save dep_emp_pos id
                 $lastemp_id = Employee::max('id');
                 //take constant variable from config/constant.php
-                $constant_id = Config::get('constants.constant_id');
+                $default_position_id = Config::get('constant.default_position_id');
+                //take constant variable from config/constant.php
+                $default_department_id = Config::get('constant.default_department_id');
                 if ($request->position_id) {
                     $pos_id = $request->position_id;
                 } else {
-                    $pos_id = $constant_id;
+                    $pos_id = $default_position_id;
                 }
                 if ($request->department_id) {
                     $dep_id = $request->department_id;
                 } else {
-                    $dep_id = $constant_id;
+                    $dep_id = $default_department_id;
                 }
                 $emp_dep_pos = new EmpDepPosition();
                 $emp_dep_pos->employee_id = $lastemp_id;
@@ -101,7 +105,7 @@ class EmployeeController extends Controller
 
                 if (validator()) {
                     Mail::raw('Your registration Successfully', function ($message) {
-                        $message->subject('Registration Info')->from('bamawlhr@gmail.com')->to('heinzaw1999.mdy@gmail.com');
+                        $message->subject('Registration Info')->from('bamawlhr@gmail.com')->to('chozinchozin560@gmail.com');
                     });
                 }
                 return response()->json([
@@ -123,13 +127,18 @@ class EmployeeController extends Controller
      */
     public function show($id)
     {
-        $per_page = Config::get('constants.per_page');
+        $per_page = Config::get('constant.per_page');
+
         $employees = Employee::whereId($id)
-            ->with('departments', 'positions')
-            ->paginate($per_page);
+            ->with('departments', 'positions')->paginate($per_page);
 
-
-        return $employees;
+        if ($employees) {
+            return response()->json($employees, 200);
+        } else {
+            return response()->json([
+                "Error: 400" => "Bad Input Request"
+            ], 400);
+        }
     }
 
     /**
@@ -152,6 +161,9 @@ class EmployeeController extends Controller
      */
     public function update(Request $request, $id)
     {
+        //take constant variable from config/constant.php
+        $constant_id = Config::get('constants.constant_id');
+
         $employees = Employee::find($id);
         $employees->employee_name = $request->employee_name;
         $employees->email = $request->email;
@@ -164,20 +176,20 @@ class EmployeeController extends Controller
         if ($request->position_id) {
             $pos_id = $request->position_id;
         } else {
-            $pos_id = 1;
+            $pos_id = $constant_id;
         }
         if ($request->department_id) {
             $dep_id = $request->department_id;
         } else {
-            $dep_id = 1;
+            $dep_id = $constant_id;
         }
-        $emp_dep_pos = EmpDepPosition::where('employee_id', $id)->firstOrFail();
+        $emp_dep_pos = EmpDepPosition::where('employee_id', $id)->first();
         $emp_dep_pos->department_id = $dep_id;
         $emp_dep_pos->position_id = $pos_id;
 
         $emp_dep_pos->update();
 
-        return $emp_dep_pos;
+        return response()->json($emp_dep_pos, 200);
     }
 
     /**
@@ -188,74 +200,101 @@ class EmployeeController extends Controller
      */
     public function destroy($id)
     {
-        $employee = Employee::whereId($id)->firstOrFail();
-        $employee->delete();
+        $employee = Employee::whereId($id)->first();
+        $emp_dep_pos = EmpDepPosition::where('employee_id', $id)->first();
+
+
+        if ($emp_dep_pos && $employee) {
+            if ($emp_dep_pos) {
+                $emp_dep_pos->delete();
+            }
+            if ($employee) {
+                $employee->delete();
+            }
+            return response()->json([
+                "Message" => "Delete success"
+            ], 200);
+        } else {
+            return response()->json([
+                "Error: 400" => "Bad Input Request"
+            ], 400);
+        }
     }
+    /**
+     * Search Employee Data
+     * @param  $id
+     * @author HZ
+     * @return Json message
+     * @create date 31/08/2020
+     */
     public function fdelete($id)
     {
         try {
-            $emp_dep_pos = EmpDepPosition::where('employee_id', $id)->firstOrFail();
-            if ($emp_dep_pos) {
-                //EmpDepPosition::where('employee_id',$id)->forcedelete();//or
-                $emp_dep_pos->forcedelete();
+            $emp_dep_pos = EmpDepPosition::where('employee_id', $id)->withTrashed()->first();
+            $employee = Employee::whereId($id)->withTrashed()->first();
+            if ($emp_dep_pos && $employee) { //check whether search id has in emp_dep_pos and employee tables or not
+                if ($emp_dep_pos) {
+                    $emp_dep_pos->forcedelete();
+                }
+                if ($employee) {
+                    $employee->forcedelete();
+                }
+                return response()->json([
+                    "message" => "Deleted"
+                ], 200);
+            } else {
+                return response()->json([
+                    "Error" => "Id not found!"
+                ], 400);
             }
-
-            $emp = Employee::whereId($id)->firstOrFail();
-            if ($emp) {
-                $emp->forcedelete();
-            }
-            return response()->json([
-                "message" => "Deleted"
-            ]);
         } catch (Exception $e) {
             return response($e->getMessage());
         }
     }
+    /**
+     * Search Employee Data
+     * @param  Request  $request
+     * @author HZ
+     * @return Employee Data
+     * @create date 31/08/2020
+     */
     public function search(Request $request)
     {
+        //take constant variable from config/constant.php
+        $per_page = Config::get('constant.per_page');
+        $search_data = [];
 
-       /*Retrive data associated with id and name
-        $empid = $request['id'];
-        $empname = $request['employee_name'];
-
-
-        $search=Employee::where('id', $empid)->orWhere('employee_name', $empname)->get();
-        return $search;
-        */
-
-        $search_data=[];
-        
-        if($request->id)
-        {
-            $search_id = ['id', $request->id];
-            array_push($search_data, $search_id);
+        if ($request->employee_id) { //search with id is true
+            $search_id = ['id', $request->employee_id];
+            array_push($search_data, $search_id); //put id to $search_data array
         }
-
-         if($request->employee_name)
-        {
-            $search_name=['employee_name','like',$request->employee_name.'%'];
+        if ($request->employee_name) { //search with name is true
+            $search_name = ['employee_name', 'like', $request->employee_name . '%'];
             array_push($search_data, $search_name);
         }
-        
-        $perPage = Config::get('constants.per_page');
-        //return response()->json(["ofgk"]); die();
-        $employees=Employee::with(['departments','positions'])->withTrashed()->where($search_data)->paginate($perPage);
-        return response()->json($employees,200);
-   
+
+        $employees = Employee::with(['departments', 'positions'])
+            ->withTrashed()
+            ->where($search_data)
+            ->paginate($per_page);
+        if ($employees) {
+            return response()->json($employees, 200);
+        } else {
+            return response()->json([
+                "Error:400" => "Bad Input Request"
+            ], 400);
+        }
     }
-    
+
     /**
      * Export Employee Data as excel
      * @param  int  $id
+     * @author HZ
      * @return Employee excel download file
+     * @create date 31/08/2020
      */
-    public function export($id)
-    {
-        if ($id == 'all') {
-            return Excel::download(new EmployeesExport, 'EmployeesList.xlsx');
-        } elseif (Employee::whereId($id)->firstOrFail()) {
-
-            return Excel::download(new EmployeeExport($id), 'EmployeeList.xlsx');
-        }
+    public function export(Request $request)
+    {      
+        return Excel::download(new EmployeesExport($request->id), 'EmployeeList.xlsx');  
     }
 }

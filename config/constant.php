@@ -2,8 +2,9 @@
     return[
         //paginate
         'per_page' => 20,
-        //Id-constant
-        'constant_id' => 1,
+        //Default-constant
+        'default_position_id' => 1,
+        'default_department_id' => 1,
 
     ];
 ?>

@@ -9,9 +9,10 @@ use Exception;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Validator;
-    /** *Here is Position Controller to show,store,insert,update,delete,search data
-     * * @author HZ
-     * @create date 28/08/2020 * */
+
+/** *Here is Position Controller to show,store,insert,update,delete,search data
+ * * @author HZ
+ * @create date 28/08/2020 * */
 class PositionController extends Controller
 {
 
@@ -23,8 +24,14 @@ class PositionController extends Controller
     public function index()
     {
         //need to be able to get the trashed positions too, but only for this instance and in this function
-        $position = Position::withTrashed()->get();
-        return $position;
+        try {
+            $position = Position::all();
+            return response($position, 200);
+        } catch (\Throwable $th) {
+            return response()->json([
+                "Error:500" => "Internal Server Error!"
+            ], 500);
+        }
     }
 
     /**
@@ -47,18 +54,24 @@ class PositionController extends Controller
         $validator = Validator::make(
             $request->all(),
             [
-                'position_name' => 'required|alpha|min:5|max:20',
+                'position_name' => 'required|min:5|max:20',
                 'position_rank' => 'required',
             ]
         );
-        if ($validator->fails()) {//if validation is false
-            return response()->json($validator->errors(), 422);//422 is Unprocessable Entity  error code
+        if ($validator->fails()) { //if validation is false
+            return response()->json($validator->errors(), 422); //422 is Unprocessable Entity  error code
         } else {
-            $position = new Position();
-            $position->position_name = $request->position_name;
-            $position->position_rank = $request->position_rank;
-            $position->save();
-            return $position;
+            try {
+                $position = new Position();
+                $position->position_name = $request->position_name;
+                $position->position_rank = $request->position_rank;
+                $position->save();
+                return response()->json($position, 200);
+            } catch (\Throwable $th) {
+                return response()->json([
+                    "Error:500" => "Save Unsuccessful!"
+                ], 500);
+            }
         }
     }
 
@@ -70,8 +83,14 @@ class PositionController extends Controller
      */
     public function show($id)
     {
-        $position = Position::whereId($id)->withTrashed()->get();
-        return $position;
+        $position = Position::whereId($id)->first();
+        if ($position) {
+            return response()->json($position, 200);
+        } else {
+            return response()->json([
+                "Error: 400" => "Bad Input Request"
+            ], 400);
+        }
     }
 
     /**
@@ -100,9 +119,11 @@ class PositionController extends Controller
             $position->position_name = $request->position_name;
             $position->position_rank = $request->position_rank;
             $position->update();
-            return response($position);
+            return response()->json($position, 200);
         } catch (Exception $e) {
-            return response($e->getMessage());
+            return response()->json([
+                "Errror:500" => "Internal Server Error"
+            ], 500);
         }
     }
 
@@ -115,10 +136,17 @@ class PositionController extends Controller
     public function destroy($id)
     {
         //$position=Position::find($id);
-        $position = Position::whereId($id)->firstOrFail();
+        $position = Position::whereId($id)->first();
 
-
-        $position->delete();
-        return  $position;
+        if ($position) {
+            $position->delete();
+            return response()->json([
+                "message" => "Deleted"
+            ], 200);
+        } else {
+            return response()->json([
+                "Error" => "Id not found"
+            ], 400);
+        }
     }
 }

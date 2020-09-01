@@ -3,7 +3,7 @@
 use App\Http\Controllers\EmployeeController;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Route;
-
+use Illuminate\Support\Facades\Artisan;
 /*
 |--------------------------------------------------------------------------
 | API Routes
@@ -29,5 +29,5 @@ Route::apiResource('/department-positions', 'DepHasPositionController');
 Route::delete('/deparment-positions/{id}/force-delete', 'DepHasPositionController@fdelete');
 Route::delete('/employees/{id}/force-delete', 'EmployeeController@fdelete');
 
-Route::get('/employeeExport/{id}','EmployeeController@export');
-Route::get('/search','EmployeeController@search');
+Route::get('/employee-export','EmployeeController@export');
+Route::post('/employees/search','EmployeeController@search');

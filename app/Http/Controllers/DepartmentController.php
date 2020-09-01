@@ -9,10 +9,11 @@ use Exception;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Validator;
-    /** *Here is Department Controller to show,store,insert,update,delete,search data
-     * * @author HZ
-     * @create date 27/08/2020
-     * * */
+
+/** *Here is Department Controller to show,store,insert,update,delete,search data
+ * * @author HZ
+ * @create date 27/08/2020
+ * * */
 class DepartmentController extends Controller
 {
 
@@ -23,8 +24,14 @@ class DepartmentController extends Controller
      */
     public function index()
     {
-        $department = Department::all();
-        return $department;
+        try {
+            $department = Department::all();
+            return response($department, 200);
+        } catch (\Throwable $th) {
+            return response()->json([
+                "Error:500" => "Internal Server Error!"
+            ], 500);
+        }
     }
 
     /**
@@ -40,23 +47,31 @@ class DepartmentController extends Controller
      * Store a newly created resource in storage.
      *
      * @param  \Illuminate\Http\Request  $request
-     * @return \Illuminate\Http\Response
+     * @author HZ
+     * @return department Data
+     * @create date 29/08/2020
      */
     public function store(Request $request)
     {
         $validator = Validator::make(
             $request->all(),
             [
-                'department_name' => 'required|alpha|min:5|max:20',
+                'department_name' => 'required|min:5|max:20',
             ]
         );
-        if ($validator->fails()) {
-            return response()->json($validator->errors(), 400);
+        if ($validator->fails()) { //if validation fail is true
+            return response()->json($validator->errors(), 400); //show validation errors in json
         } else {
-            $department = new Department();
-            $department->department_name = $request->department_name;
-            $department->save();
-            return $department;
+            try {
+                $department = new Department();
+                $department->department_name = $request->department_name;
+                $department->save();
+                return response()->json($department, 200);
+            } catch (\Throwable $th) {
+                return response()->json([
+                    "Error:500" => "Save Unsuccessful!"
+                ], 500);
+            }
         }
     }
 
@@ -64,18 +79,29 @@ class DepartmentController extends Controller
      * Display the specified resource.
      *
      * @param  int  $id
-     * @return \Illuminate\Http\Response
+     * @author HZ
+     * @return Specific Department Data
+     * @create date 29/08/2020
      */
     public function show($id)
     {
-        return Department::find($id);
+        $department = Department::whereId($id)->first();
+        if ($department) {
+            return response()->json($department, 200);
+        } else {
+            return response()->json([
+                "Error: 400" => "Bad Input Request"
+            ], 400);
+        }
     }
 
     /**
      * Show the form for editing the specified resource.
      *
      * @param  int  $id
+     
      * @return \Illuminate\Http\Response
+     * 
      */
     public function edit($id)
     {
@@ -85,61 +111,49 @@ class DepartmentController extends Controller
     /**
      * Update the specified resource in storage.
      *
-     * @param  \Illuminate\Http\Request  $request
+     * @param  Request $request
      * @param  int  $id
-     * @return \Illuminate\Http\Response
+     * @author HZ
+     * @return department json data
+     * @create date 29/08/2020
      */
     public function update(Request $request, $id)
     {
-        $department = Department::find($id);
-        $department->department_name = $request->department_name;
-        $department->update();
-        return  $department;
+
+        try {
+            $department = Department::find($id);
+            $department->department_name = $request->department_name;
+            $department->update();
+            return response()->json($department, 200);
+        } catch (\Throwable $th) {
+            return response()->json([
+                "Errror:500" => "Internal Server Error"
+            ], 500);
+        }
     }
 
     /**
      * Remove the specified resource from storage.
      *
      * @param  int  $id
-     * @return \Illuminate\Http\Response
+     * @author HZ
+     * @return Json Message
+     * @create date 29/08/2020
      */
     public function destroy($id)
     {
 
-        $department = Department::whereId($id)->firstOrFail();
-        $department->delete();
-        return  $department;
-    }
+        $department = Department::whereId($id)->first();
 
-    /** *Here is force delete the department 
-     * * @author HZ
-     * @create date 31/08/2020
-     * @param id @return Message * */
-    /*public function fdelete($id)
-    {
-        try {
-            $emp_dep_pos = EmpDepPosition::where('department_id', $id)->firstOrFail();
-            if ($emp_dep_pos) {
-                EmpDepPosition::where('department_id',$id)->forcedelete();//or
-                //$emp_dep_pos->forcedelete();
-
-            }
-            $dep_pos=DepHasPosition::where('department_id',$id)->firstOrFail();
-            if($dep_pos){
-                DepHasPosition::where('department_id',$id)->forcedelete();
-            }
-            $dep=Department::where($id)->firstOrFail();
-            if($dep){
-                Department::where($id)->forcedelete();
-            }
+        if ($department) { //if search Id has in departments table is true?
+            $department->delete(); //update the deleted_at time
             return response()->json([
-                "message" => "Deleted"
-            ]);
-
-        } catch (Exception $e) {
-            return response($e->getMessage());
+                "Message" => "Delete Successfully"
+            ], 200);
+        } else {
+            return response()->json([
+                "Error: 400" => "Bad Input Request"
+            ], 400);
         }
-
-
-    }*/
+    }
 }
