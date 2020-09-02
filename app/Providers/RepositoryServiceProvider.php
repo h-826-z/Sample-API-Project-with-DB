@@ -8,6 +8,7 @@ use App\Repositories\EmployeeRepository;
 
 use App\Repositories\Interfaces\EmployeeDepartmentPositionsRepositoryInterface;
 use App\Repositories\EmployeeDepartmentPositionRepository;
+
 class RepositoryServiceProvider extends ServiceProvider
 {
     /**
