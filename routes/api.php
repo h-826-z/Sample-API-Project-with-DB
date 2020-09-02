@@ -31,3 +31,5 @@ Route::delete('/employees/{id}/force-delete', 'EmployeeController@fdelete');
 
 Route::get('/employee-export','EmployeeController@export');
 Route::post('/employees/search','EmployeeController@search');
+//validation with Repository
+Route::get('/save','EmployeeRegistrationController@save');

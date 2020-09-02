@@ -65,6 +65,7 @@ class EmployeesExport implements FromCollection, WithHeadings, WithStrictNullCom
             ->where($this->data)
             ->select('employees.id' ,'employees.employee_name' , 'employees.email' , 'employees.dob' , 'employees.gender' ,  'departments.department_name', 'positions.position_name')
             ->get();
+            
             return $sql;
     }
  
