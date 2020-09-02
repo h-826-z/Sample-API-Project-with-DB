@@ -31,7 +31,7 @@ class EmployeeRegistrationValidationRequest extends FormRequest
     {
         return [
             'employee_name' => 'required|string',
-            'email' => 'required|email|unique:employees,email',//unique:employees,email ->email column only
+            'email' => 'required|email',//unique:employees,email ->email column only
             'dob' => 'required|date_format:Y-m-d',
             'password' => 'required|min:10',
             'gender' => 'required|in:1,2'//in:1,2 ->accept 1 and 2 only
@@ -65,7 +65,7 @@ class EmployeeRegistrationValidationRequest extends FormRequest
             'dob.date_format' => "Date Format is invalid!",
             'email.required' => "Email is required!",
             'email.email' => "Email Format is invalid!",
-            'email.unique' => "Email is already exists!",
+            //'email.unique' => "Email is already exists!",
             'password.required' => "Password is required!",
             'password.min' => "Password must be minimum 10 characters!",
             'gender.required' => "Gender is required!",
