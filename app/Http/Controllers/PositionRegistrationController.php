@@ -15,4 +15,15 @@ class PositionRegistrationController extends Controller
     {
         $this->posRepo->savePosition($request);
     }
+    public function update(PositionRegistrationValidationRequest $request)
+    {
+        $position=$this->posRepo->checkPosition($request);
+        if($position->isEmpty()){
+            return response()->json([
+                "Error" => "This position does not exit in Position List"
+            ],400);
+        }else{
+            $this->posRepo->updatePosition($request);
+        }
+    }
 }

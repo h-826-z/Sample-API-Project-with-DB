@@ -8,15 +8,17 @@ use Exception;
 use Illuminate\Support\Facades\DB;
 
 /**
- * Class EmployeeRepository.
+ * Class EmployeeRepository to save,check,update the request data to employee table 
  * @author HZ
  * @create date 02/09/2020
  */
 class EmployeeRepository implements EmployeeRepositoryInterface
 {
     /**
+     * save request data in employee table
      * @author HZ
-     * @return Return the model
+     * @param $request
+     * @return 1 or 0
      * @create date 02/09/2020
      */
     public function saveEmployee($request)
@@ -36,6 +38,14 @@ class EmployeeRepository implements EmployeeRepositoryInterface
         }
         
     }
+
+    /**
+     * check request data that it has in employee table
+     * @author HZ
+     * @param $request
+     * @return specific employee 
+     * @create date 02/09/2020
+     */
     public function checkEmployee($request)
     {
         $employeeId=$request->id;
@@ -46,6 +56,13 @@ class EmployeeRepository implements EmployeeRepositoryInterface
         
         return $employee;  
     }
+    /**
+     * update request data in employee table
+     * @author HZ
+     * @param $request
+     * @return 1 or 0
+     * @create date 02/09/2020
+     */
     public function updateEmployee($request)
     {
         try {
